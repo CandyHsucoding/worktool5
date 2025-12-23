@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>廚工補休時數紀錄表</title>
+    <style>
+        :root {
+            --bg-weekday: #ffffff;
+            --bg-sat: #f8fbff;
+            --bg-sun: #fffcfc;
+            --bg-holiday: #fdeaea; 
+            --holiday-text: #b00020; 
+            --border-color: #333;
+            --primary-color: #1e293b;
+            --accent-color: #334155;
+            --focus-color: #3498db;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", "Segoe UI", sans-serif;
+            margin: 30px 20px;
+            background-color: #f0f2f5;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-radius: 8px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            color: var(--primary-color);
+            letter-spacing: 4px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .info-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 15px;
+            padding: 6px 10px;
+            width: 140px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        select.info-input {
+            width: 100px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .info-input:focus {
+            border-color: var(--focus-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            outline: none;
+        }
+
+        .vacation-box {
+            background-color: #ebf4ff;
+            border: 1px solid #bee3f8;
+            padding: 10px 15px;
+            border-radius: 6px;
+            color: #2a4365;
+            font-size: 14px;
+        }
+
+        .vacation-input {
+            width: 60px;
+            padding: 4px;
+            text-align: center;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 11px;
+            border: 2px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 0;
+        }
+
+        td {
+            border: 1px solid var(--border-color);
+            text-align: center;
+            padding: 0;
+            height: 52px;
+            vertical-align: middle;
+            position: relative;
+        }
+
+        .col-month { 
+            width: 45px; 
+            background-color: #f1f5f9; 
+            font-weight: bold; 
+        }
+        
+        .col-total { 
+            width: 65px; 
+            font-weight: bold; 
+            background-color: #f8fafc; 
+            color: #1e293b;
+        }
+
+        .cell-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        .day-label {
+            display: block;
+            font-size: 9px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        .holiday-name {
+            display: block;
+            font-size: 8px;
+            color: var(--holiday-text);
+            font-weight: 600;
+        }
+
+        input[type="number"].hour-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            outline: none;
+            padding-top: 18px; 
+            box-sizing: border-box;
+            z-index: 5;
+            cursor: pointer;
+        }
+
+        .bg-weekday { background-color: var(--bg-weekday); }
+        .bg-sat { background-color: #f1f7ff; }
+        .bg-sun { background-color: #fff8f8; }
+        .bg-holiday { 
+            background-color: var(--bg-holiday) !important; 
+            color: var(--holiday-text) !important;
+        }
+
+        .summary-row {
+            background-color: #fffde7; 
+            font-weight: bold;
+            font-size: 16px;
+            color: #854d0e;
+        }
+
+        .btn-print {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 200px;
+            padding: 14px;
+            margin: 40px auto;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
+        }
+
+        .btn-print:hover {
+            background-color: #0f172a;
+            transform: translateY(-2px);
+        }
+
+        .legend {
+            margin-top: 25px;
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            justify-content: center;
+            color: #64748b;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .box {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: 1px solid #cbd5e1;
+        }
+
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            @page {
+                size: A4 landscape;
+                margin: 5mm 10mm;
+            }
+
+            html, body {
+                height: 99%;
+                overflow: hidden;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white;
+            }
+
+            .container {
+                box-shadow: none;
+                width: 100%;
+                max-width: none;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none;
+            }
+
+            header {
+                margin-bottom: 10px;
+            }
+
+            h1 {
+                font-size: 20px;
+                color: black;
+                letter-spacing: 2px;
+            }
+
+            .bg-weekday { background-color: #ffffff !important; }
+            .bg-sat { background-color: #f0f7ff !important; }
+            .bg-sun { background-color: #fff5f5 !important; }
+            .bg-holiday { 
+                background-color: #fdeaea !important; 
+                color: #b00020 !important;
+            }
+            .holiday-name { color: #b00020 !important; }
+            .summary-row { background-color: #fffdf0 !important; }
+
+            .btn-print, .legend, .vacation-box, .info-bar {
+                display: none !important;
+            }
+
+            #print-info-header {
+                display: flex !important;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                border-bottom: 1px solid #333;
+                padding-bottom: 3px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            th, td {
+                height: 40px !important;
+                font-size: 10px;
+                color: black;
+                border: 1px solid black;
+            }
+
+            th {
+                background-color: #f1f5f9 !important;
+                color: black;
+            }
+
+            .col-month { background-color: transparent !important; }
+            .day-label { font-size: 8px; color: #333; }
+
+            input[type="number"].hour-input {
+                font-size: 13px;
+                padding-top: 14px;
+                color: black;
+            }
+
+            .summary-row {
+                font-size: 13px;
+                color: black;
+            }
+        }
+
+        #print-info-header {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 id="mainTitle">2026 年（民國 115 年）廚工補休時數紀錄表</h1>
+    </header>
+
+    <div class="info-bar">
+        <div class="info-group">
+            <span>年份：</span>
+            <select id="yearSelect" class="info-input" onchange="changeYear()">
+                <option value="2025">2025</option>
+                <option value="2026" selected>2026</option>
+            </select>
+        </div>
+        <div class="info-group">
+            <span>職別：</span>
+            <input type="text" id="jobTitle" class="info-input" placeholder="職別">
+        </div>
+        <div class="info-group">
+            <span>姓名：</span>
+            <input type="text" id="userName" class="info-input" placeholder="姓名">
+        </div>
+        <div class="vacation-box">
+            <strong>年度特休：</strong>
+            <input type="number" id="annualVacationDays" class="vacation-input" min="0" step="0.5" value="0">
+            <span>天 (共 <span id="vacationHoursDisplay" style="font-weight: 800;">0</span> 小時)</span>
+        </div>
+        <div style="font-size: 14px; color: #64748b;">
+            列印日期：<span id="printDateDisplay" style="font-weight: 600; color: #1e293b;"></span>
+        </div>
+    </div>
+
+    <div id="print-info-header">
+        <div>年份：<span id="p-year"></span></div>
+        <div>職別：<span id="p-job"></span></div>
+        <div>姓名：<span id="p-user"></span></div>
+        <div>年度特休：<span id="p-days">0</span> 天 (<span id="p-hours">0</span> 小時)</div>
+        <div>列印日期：<span id="p-date"></span></div>
+    </div>
+
+    <table id="recordTable">
+        <thead>
+            <tr id="headerRow">
+                <th class="col-month">月份</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+        <tfoot>
+            <tr class="summary-row">
+                <td colspan="32" style="text-align: right; padding-right: 20px;">
+                    全年度補休小計累計時數：
+                </td>
+                <td id="yearlyTotal">0</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="legend">
+        <div class="legend-item"><div class="box" style="background:#fff;"></div> 平日</div>
+        <div class="legend-item"><div class="box bg-sat"></div> 星期六</div>
+        <div class="legend-item"><div class="box bg-sun"></div> 星期日</div>
+        <div class="legend-item"><div class="box bg-holiday" style="background: #fdeaea; border: 1px solid #b00020;"></div> 國定假日/紀念日</div>
+    </div>
+
+    <button type="button" class="btn-print" onclick="window.print()">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
+            <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+        </svg>
+        產生報表並列印
+    </button>
+</div>
+
+<script>
+    // 2025 年人事行政局國定假日 (含修正後日期)
+    const holidays2025 = {
+        "1-1": "元旦", "1-27": "調整放假", "1-28": "除夕", "1-29": "春節", "1-30": "初二", "1-31": "初三",
+        "2-1": "初四", "2-2": "初五", "2-28": "和平紀念", "4-3": "兒童節", "4-4": "清明節",
+        "5-1": "勞動節", "5-31": "端午節", "6-2": "補假", "9-28": "教師節", "10-6": "中秋節", 
+        "10-10": "國慶日", "10-25": "光復節", "12-25": "行憲紀念"
+    };
+
+    // 2026 年人事行政局國定假日
+    const holidays2026 = {
+        "1-1": "元旦", "2-16": "除夕", "2-17": "春節", "2-18": "春節", "2-19": "春節",
+        "2-20": "初四(補)", "2-27": "補假", "2-28": "和平紀念", "4-3": "兒童節", "4-6": "清明補假",
+        "5-1": "勞動節", "6-19": "端午節", "9-25": "中秋節", "9-28": "教師節", "10-9": "補假",
+        "10-10": "國慶日", "10-25": "光復節", "10-26": "補假", "12-25": "行憲紀念"
+    };
+
+    const weekChars = ["日", "一", "二", "三", "四", "五", "六"];
+
+    function changeYear() {
+        renderTable();
+        loadData(); // 切換年份時嘗試讀取該年資料
+        calculateAndSave();
+    }
+
+    function renderTable() {
+        const year = parseInt(document.getElementById('yearSelect').value);
+        const rocYear = year - 1911;
+        document.getElementById('mainTitle').innerText = `${year} 年（民國 ${rocYear} 年）廚工補休時數紀錄表`;
+        document.getElementById('p-year').innerText = year;
+
+        const headerRow = document.getElementById('headerRow');
+        const tableBody = document.getElementById('tableBody');
+        
+        headerRow.innerHTML = '<th class="col-month">月份</th>';
+        tableBody.innerHTML = '';
+
+        for (let d = 1; d <= 31; d++) {
+            const th = document.createElement('th');
+            th.innerText = d;
+            headerRow.appendChild(th);
+        }
+        const thTotal = document.createElement('th');
+        thTotal.className = 'col-total';
+        thTotal.innerText = '小計';
+        headerRow.appendChild(thTotal);
+
+        const currentHolidays = year === 2025 ? holidays2025 : holidays2026;
+
+        for (let m = 1; m <= 12; m++) {
+            const tr = document.createElement('tr');
+            const tdMonth = document.createElement('td');
+            tdMonth.innerText = m + '月';
+            tdMonth.className = 'col-month';
+            tr.appendChild(tdMonth);
+
+            const daysInMonth = new Date(year, m, 0).getDate();
+
+            for (let d = 1; d <= 31; d++) {
+                const td = document.createElement('td');
+                if (d <= daysInMonth) {
+                    const dateObj = new Date(year, m - 1, d);
+                    const dayOfWeek = dateObj.getDay();
+                    const dateKey = `${m}-${d}`;
+                    const hName = currentHolidays[dateKey];
+
+                    if (hName) td.className = 'bg-holiday';
+                    else if (dayOfWeek === 6) td.className = 'bg-sat';
+                    else if (dayOfWeek === 0) td.className = 'bg-sun';
+                    else td.className = 'bg-weekday';
+
+                    td.innerHTML = `<div class="cell-content">
+                        <span class="day-label">${weekChars[dayOfWeek]}</span>
+                        ${hName ? `<span class="holiday-name">${hName}</span>` : ''}
+                    </div>`;
+
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'hour-input';
+                    input.step = '0.5';
+                    input.min = '0';
+                    input.dataset.month = m;
+                    input.dataset.day = d;
+                    input.oninput = calculateAndSave;
+                    td.appendChild(input);
+                } else {
+                    td.style.backgroundColor = '#f1f5f9';
+                }
+                tr.appendChild(td);
+            }
+
+            const tdSub = document.createElement('td');
+            tdSub.id = `sub-${m}`;
+            tdSub.className = 'col-total';
+            tdSub.innerText = '0';
+            tr.appendChild(tdSub);
+            tableBody.appendChild(tr);
+        }
+    }
+
+    function init() {
+        try {
+            const today = new Date();
+            const dateStr = `${today.getFullYear() - 1911}/${today.getMonth() + 1}/${today.getDate()}`;
+            document.getElementById('printDateDisplay').innerText = dateStr;
+            document.getElementById('p-date').innerText = dateStr;
+
+            renderTable();
+
+            document.getElementById('jobTitle').oninput = calculateAndSave;
+            document.getElementById('userName').oninput = calculateAndSave;
+            document.getElementById('annualVacationDays').oninput = calculateAndSave;
+
+            loadData();
+            calculateAndSave();
+        } catch (e) {
+            console.error("Init Error:", e);
+        }
+    }
+
+    function calculateAndSave() {
+        const year = document.getElementById('yearSelect').value;
+        const job = document.getElementById('jobTitle').value;
+        const name = document.getElementById('userName').value;
+        const vDays = parseFloat(document.getElementById('annualVacationDays').value) || 0;
+        const vHours = vDays * 8;
+
+        document.getElementById('vacationHoursDisplay').innerText = vHours;
+        document.getElementById('p-job').innerText = job || "未填寫";
+        document.getElementById('p-user').innerText = name || "未填寫";
+        document.getElementById('p-days').innerText = vDays;
+        document.getElementById('p-hours').innerText = vHours;
+
+        let grandTotal = 0;
+        const hoursMap = {};
+
+        for (let m = 1; m <= 12; m++) {
+            let mSum = 0;
+            const inputs = document.querySelectorAll(`input[data-month="${m}"]`);
+            inputs.forEach(input => {
+                const val = parseFloat(input.value) || 0;
+                mSum += val;
+                if (input.value !== "") hoursMap[`${m}-${input.dataset.day}`] = input.value;
+            });
+            const subEl = document.getElementById(`sub-${m}`);
+            if (subEl) subEl.innerText = mSum;
+            grandTotal += mSum;
+        }
+
+        document.getElementById('yearlyTotal').innerText = grandTotal;
+
+        try {
+            localStorage.setItem(`kitchen_records_${year}`, JSON.stringify({job, name, vDays, hoursMap}));
+        } catch (e) {}
+    }
+
+    function loadData() {
+        try {
+            const year = document.getElementById('yearSelect').value;
+            const raw = localStorage.getItem(`kitchen_records_${year}`);
+            if (!raw) {
+                // 如果沒資料，清空現有輸入值
+                document.querySelectorAll('.hour-input').forEach(el => el.value = "");
+                return;
+            };
+            const data = JSON.parse(raw);
+            document.getElementById('jobTitle').value = data.job || "";
+            document.getElementById('userName').value = data.name || "";
+            document.getElementById('annualVacationDays').value = data.vDays || 0;
+            
+            // 先清空所有輸入再填入
+            document.querySelectorAll('.hour-input').forEach(el => el.value = "");
+            
+            if (data.hoursMap) {
+                Object.keys(data.hoursMap).forEach(key => {
+                    const [m, d] = key.split('-');
+                    const el = document.querySelector(`input[data-month="${m}"][data-day="${d}"]`);
+                    if (el) el.value = data.hoursMap[key];
+                });
+            }
+        } catch (e) {}
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
